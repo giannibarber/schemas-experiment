@@ -15,7 +15,7 @@
           "minItems": 1,
           "maxItems": 2,
           "default": ["EN"],
-          "uniqueItems": true
+          "uniqueItems": false
         }
       ]
     },
