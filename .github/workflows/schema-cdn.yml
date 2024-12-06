@@ -23,17 +23,17 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secret.AWS_ACCOUNT_ID }}:role/GITHUB_ACTION
+          role-to-assume: arn:aws:iam::155736826933:role/GITHUB_ACTION
           role-session-name: githubactions
-          aws-region: eu-north-1${{ secrets.AWS_REGION }}
+          aws-region: eu-north-1
 
       - name: Sync Files to S3
         run: |
-          aws s3 sync . s3://schema-cdn-service-bucket \
+          aws s3 sync . s3://gianni-experiment-cdn-service-bucket \
             --exclude "*" \
             --include "schemas/**/schema.json" \
             --delete
 
       - name: Invalidate CloudFront Cache
         run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+          aws cloudfront create-invalidation --distribution-id E1JR739HXON9CZ --paths "/*"
