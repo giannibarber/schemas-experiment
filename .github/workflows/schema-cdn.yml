@@ -29,9 +29,25 @@ jobs:
 
       - name: Sync Files to S3
         run: |
-          aws s3 sync . s3://gianni-experiment-cdn-service-bucket \
-            --exclude "*" \
-            --include "schemas/**/schema.json" \
+          # Create a temporary directory for transformed files
+          mkdir -p transformed
+          
+          # Find all schema.json files and create transformed copies
+          find schemas -name schema.json | while read file; do
+            # Extract components from path (e.g., schemas/Forestry/v0.0.1/schema.json)
+            domain=$(echo "$file" | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]')
+            version=$(echo "$file" | cut -d'/' -f3)
+            
+            # Create new path with transformed structure
+            new_path="transformed/${domain}-schemas/${version}/schema.json"
+            
+            # Create directory structure and copy file
+            mkdir -p "$(dirname "$new_path")"
+            cp "$file" "$new_path"
+          done
+          
+          # Sync transformed directory to S3
+          aws s3 sync transformed/ s3://gianni-experiment-cdn-service-bucket \
             --delete
 
       - name: Invalidate CloudFront Cache
