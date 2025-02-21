@@ -31,6 +31,9 @@ jobs:
         run: |
           # Create a temporary directory for transformed files
           mkdir -p transformed
+
+          # Create 404.txt file in the root of transformed directory
+          echo "Not Found" > transformed/404.txt
           
           # Find all schema.json files and create transformed copies
           find schemas -name schema.json | while read file; do
