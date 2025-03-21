@@ -60,17 +60,17 @@ jobs:
             cp "$file" "$new_path"
             
             # Store the domain for sync
-            echo "${domain}-schemas" >> domains.txt
+            echo "${domain}-schemas/*" >> patterns.txt
           done
           
-          # Create sync includes file
-          if [ -f domains.txt ]; then
-            INCLUDES=""
-            while read domain; do
-              INCLUDES="$INCLUDES --include \"${domain}/*\""
-            done < domains.txt
+          # Sync transformed directory to S3
+          if [ -f patterns.txt ]; then
+            # Convert patterns file to proper --include arguments
+            INCLUDES=$(cat patterns.txt | while read pattern; do echo "--include $pattern"; done | tr '\n' ' ')
             
-            # Sync transformed directory to S3
+            # Debug output to verify the command
+            echo "Running sync with includes: $INCLUDES"
+            
             aws s3 sync transformed/ s3://gianni-experiment-cdn-service-bucket \
               --delete \
               --exclude "*" \
