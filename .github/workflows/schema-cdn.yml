@@ -33,8 +33,13 @@ jobs:
           # Create a temporary directory for transformed files
           mkdir -p transformed
 
-          # Create 404.txt file in the root of transformed directory
-          echo "Not Found" > transformed/404.txt
+          # Get repository name from GitHub context
+          REPO_NAME=$(echo ${{ github.repository }} | cut -d'/' -f2 | tr '[:upper:]' '[:lower:]')
+          
+          # Create 404.txt file in the root of transformed directory (only for main repository)
+          if [ "$REPO_NAME" = "schemas-experiment" ]; then
+            echo "Not Found" > transformed/404.txt
+          fi
           
           # Find all schema.json files and create transformed copies
           find schemas -name schema.json | while read file; do
@@ -53,13 +58,24 @@ jobs:
             # Create directory structure and copy file
             mkdir -p "$(dirname "$new_path")"
             cp "$file" "$new_path"
+            
+            # Store the domain for sync
+            echo "${domain}-schemas" >> domains.txt
           done
           
-          # Sync transformed directory to S3
-          aws s3 sync transformed/ s3://gianni-experiment-cdn-service-bucket \
-            --delete \
-            --exclude "*" \
-            --include "$(ls transformed/ | tr '\n' ' ' | sed 's/ *$//')"
+          # Create sync includes file
+          if [ -f domains.txt ]; then
+            INCLUDES=""
+            while read domain; do
+              INCLUDES="$INCLUDES --include \"${domain}/*\""
+            done < domains.txt
+            
+            # Sync transformed directory to S3
+            aws s3 sync transformed/ s3://schema-cdn-service-bucket \
+              --delete \
+              --exclude "*" \
+              $INCLUDES
+          fi
 
       - name: Invalidate CloudFront Cache
         run: |
