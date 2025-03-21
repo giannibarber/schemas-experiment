@@ -24,7 +24,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GIANNI_GITHUB_ACTION_TESTING
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GianniTestingRole
           role-session-name: githubactions
           aws-region: ${{ secrets.AWS_REGION }}
 
@@ -56,8 +56,10 @@ jobs:
           done
           
           # Sync transformed directory to S3
-          aws s3 sync transformed/ s3://gianni-experiment-cdn-service-bucket \
-            --delete
+          aws s3 sync transformed/ s3://schema-cdn-service-bucket \
+            --delete \
+            --exclude "*" \
+            --include "$(ls transformed/ | tr '\n' ' ' | sed 's/ *$//')"
 
       - name: Invalidate CloudFront Cache
         run: |
