@@ -71,7 +71,7 @@ jobs:
             done < domains.txt
             
             # Sync transformed directory to S3
-            aws s3 sync transformed/ s3://schema-cdn-service-bucket \
+            aws s3 sync transformed/ s3://gianni-experiment-cdn-service-bucket \
               --delete \
               --exclude "*" \
               $INCLUDES
